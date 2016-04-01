@@ -3,25 +3,37 @@ package main
 import (
 	"github.com/google/go-github/github"
 	"fmt"
+	"os"
 	"os/exec"
+	"bytes"
+	"log"
+	"time"
 )
 
 func main() {
 	client := github.NewClient(nil)
-	//user, resp, err:= client.Users.Get("clly")
 	starredRepos, resp, err := client.Activity.ListStarred("clly", nil)
 	if err != nil {
 		panic(err)
 	}
 	for i := range(starredRepos) {
 		repo := starredRepos[i].Repository
-
-		fmt.Println(*repo.Name, *repo.CloneURL)
+		fullName := *repo.FullName
+		fmt.Printf("Going to clone into %s via %s\n", fullName, *repo.CloneURL)
+		clone(*repo.FullName, *repo.CloneURL)
+		time.Sleep(time.Second * 5)
 	}
 	fmt.Println(resp)
 }
 
-func clone(name string, url string) {
-	command := fmt.Sprintf("git clone %s %s", name, url)
-	exec.Cmd(command)
+func clone(path string, url string) {
+	command := exec.Command("git", "clone", url, path)
+	var out bytes.Buffer
+	command.Stdout = &out
+	command.Stderr = &out
+	err := command.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Cloning url into path: %s\n%s\n", path, out.String())
 }
