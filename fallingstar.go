@@ -20,8 +20,13 @@ func main() {
 		repo := starredRepos[i].Repository
 		fullName := *repo.FullName
 		fmt.Printf("Going to clone into %s via %s\n", fullName, *repo.CloneURL)
-		clone(*repo.FullName, *repo.CloneURL)
-		time.Sleep(time.Second * 5)
+		_, err := os.Stat(fullName)
+		if err != nil {
+			clone(*repo.FullName, *repo.CloneURL)
+			time.Sleep(time.Second * 5)
+		} else {
+			fmt.Printf("Unable to clone into path %s. It already exists\n", fullName)
+		}
 	}
 	fmt.Println(resp)
 }
