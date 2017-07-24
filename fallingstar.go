@@ -1,26 +1,30 @@
 package main
 
 import (
-	"github.com/google/go-github/github"
+	"bytes"
+	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
-	"bytes"
-	"log"
 	"time"
+
+	"github.com/google/go-github/github"
 )
 
 func main() {
 	var user string
-	if (len(os.Args) >= 2) {
+	if len(os.Args) >= 2 {
 		user = os.Args[1]
 	}
 	client := github.NewClient(nil)
-	starredRepos, resp, err := client.Activity.ListStarred(user, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	starredRepos, resp, err := client.Activity.ListStarred(ctx, user, nil)
 	if err != nil {
 		fmt.Errorf("Failed to pull starred repos: %s", err)
 	}
-	for i := range(starredRepos) {
+	for i := range starredRepos {
 		repo := starredRepos[i].Repository
 		fullName := *repo.FullName
 		_, err := os.Stat(fullName)
