@@ -1,16 +1,18 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"time"
 
 	"github.com/google/go-github/github"
 )
+
+const binGit = "/bin/git"
+const usrBinGit = "/usr/bin/git"
+const usrLocalGit = "/usr/local/bin/git"
 
 func main() {
 	var user string
@@ -22,7 +24,7 @@ func main() {
 	defer cancel()
 	starredRepos, resp, err := client.Activity.ListStarred(ctx, user, nil)
 	if err != nil {
-		fmt.Errorf("Failed to pull starred repos: %s", err)
+		fmt.Fprintf(os.Stderr, "Failed to pull starred repos: %s\n", err)
 	}
 	for i := range starredRepos {
 		repo := starredRepos[i].Repository
@@ -30,39 +32,76 @@ func main() {
 		_, err := os.Stat(fullName)
 		if err != nil {
 			fmt.Printf("Going to clone into %s via %s\n", fullName, *repo.CloneURL)
-			clone(fullName, *repo.CloneURL)
+			err = execGitCmd(fullName, *repo.CloneURL)
+			if err != nil {
+				fmt.Println("Failed to clone ", fullName, err)
+			}
 			time.Sleep(time.Second * 5)
 		} else {
 			fmt.Printf("Unable to clone into path %s. It already exists\n", fullName)
-			pull(fullName)
+			err = execGitCmd(fullName, "")
+			if err != nil {
+				fmt.Println("Failed to pull git repo ", err)
+			}
 			time.Sleep(time.Second * 1)
 		}
 	}
 	fmt.Printf("Github api limit: %v. Github api remaining: %v. Github api reset %v\n", resp.Limit, resp.Remaining, resp.Reset)
 }
 
-func pull(path string) {
-	command := exec.Command("git", "pull", "--ff-only")
-	command.Dir = path
-	// TODO: Replicating from git clone. Combine functions
-	var out bytes.Buffer
-	command.Stdout = &out
-	command.Stderr = &out
-	err := command.Run()
-	if err != nil {
-		log.Fatal(err)
+// buildGitCmd creates the git clone or git pull command. If url is empty
+// string it creates a git pull instead of git clone
+func gitCmd(path string, url string) (*exec.Cmd, error) {
+	gitPath := findGit()
+	if gitPath == "" {
+		return nil, fmt.Errorf("Unable to find git on PATH or %s %s %s", binGit, usrBinGit, usrLocalGit)
 	}
-	fmt.Printf("Pulling updates from upstream\n%s\n", out.String())
+	var pwd string
+	gitCmd := make([]string, 0, 4)
+	if url != "" {
+		gitCmd = []string{gitPath, "clone", url, path}
+	} else {
+		gitCmd = []string{gitPath, "pull", "--ff-only"}
+		pwd = path
+	}
+
+	command := exec.Command(gitPath, gitCmd[1:]...) // #nosec
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stdout
+	// Should we make this the fully qualified path?
+	command.Dir = pwd
+	return command, nil
 }
 
-func clone(path string, url string) {
-	command := exec.Command("git", "clone", url, path)
-	var out bytes.Buffer
-	command.Stdout = &out
-	command.Stderr = &out
-	err := command.Run()
+// execGitCmd is a wrapper around cmd.Start from gitCmd. It makes testing easier
+func execGitCmd(path, url string) error {
+	cmd, err := gitCmd(path, url)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	fmt.Printf("Cloning url into path: %s\n%s\n", path, out.String())
+	return cmd.Run()
+}
+
+func findGit() string {
+	if exists(binGit) {
+		return binGit
+	} else if exists(usrBinGit) {
+		return usrBinGit
+	} else if exists(usrLocalGit) {
+		return usrLocalGit
+	}
+	gitPath, err := exec.LookPath("git")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to find git on path. Looking at some other places")
+		return ""
+	}
+	return gitPath
+}
+
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	if err != nil {
+		return os.IsNotExist(err)
+	}
+	return true
 }
