@@ -1,7 +1,7 @@
 # fallingstar
-[![Go Report Card](https://goreportcard.com/badge/github.com/clly/fallingstar)]
-[![Build Status](https://travis-ci.org/clly/fallingstar.svg?branch=travis)]
-[![Godoc](https://godoc.org/github.com/shoenig/toolkit?status.svg)]
+[![Go Report Card](https://goreportcard.com/badge/github.com/clly/fallingstar)](https://goreportcard.com/report/github.com/clly/fallingstar)
+[![Build Status](https://travis-ci.org/clly/fallingstar.svg?branch=travis)](https://travis-ci.org/clly/fallingstar)
+[![Godoc](https://godoc.org/github.com/shoenig/toolkit?status.svg)](https://godoc.org/github.com/clly/fallingstar)
 [![License](https://img.shields.io/github/license/clly/fallingstar.svg)](LICENSE)
 
 Automatically download starred repositories into owner/repo namespace
