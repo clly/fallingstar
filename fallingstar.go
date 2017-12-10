@@ -7,25 +7,78 @@ import (
 	"os/exec"
 	"time"
 
+	"gitlab.com/clly/toolbox"
+
 	"github.com/google/go-github/github"
 )
 
 const binGit = "/bin/git"
 const usrBinGit = "/usr/bin/git"
 const usrLocalGit = "/usr/local/bin/git"
+const perPage = 100
+
+// Star holds a bunch of
+type Star struct {
+	Page      int
+	NextPage  bool
+	User      string
+	Limit     int
+	Remaining int
+	LastPage  int
+	Reset     github.Timestamp
+}
 
 func main() {
 	var user string
 	if len(os.Args) >= 2 {
 		user = os.Args[1]
+	} else {
+		fmt.Fprintln(os.Stderr, "Must supply github username")
+		os.Exit(1)
 	}
+
+	s := &Star{
+		User:     user,
+		Page:     1,
+		NextPage: true,
+	}
+
+	for s.NextPage {
+		r, err := s.getRepos(s.Page, perPage)
+		if err != nil {
+			toolbox.Oopse(err)
+		}
+		fmt.Fprintf(os.Stderr, "On page %d of %d\n", s.Page, s.LastPage)
+		loopStarred(r)
+		fmt.Printf("\nGithub api limit: %v. Github api remaining: %v. Github api reset %v\n",
+			s.Limit, s.Remaining, s.Reset)
+	}
+}
+
+func (s *Star) getRepos(page, perpage int) ([]*github.StarredRepository, error) {
 	client := github.NewClient(nil)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	starredRepos, resp, err := client.Activity.ListStarred(ctx, user, nil)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to pull starred repos: %s\n", err)
+	starredRepos, resp, err := client.Activity.ListStarred(ctx, s.User, &github.ActivityListStarredOptions{
+		ListOptions: github.ListOptions{
+			PerPage: perpage,
+			Page:    page,
+		},
+	})
+	if resp.NextPage == resp.LastPage {
+		s.NextPage = false
+	} else {
+		s.NextPage = true
 	}
+	s.Page = resp.NextPage
+	s.Reset = resp.Reset
+	s.Limit = resp.Limit
+	s.Remaining = resp.Remaining
+	s.LastPage = resp.LastPage
+	return starredRepos, err
+}
+
+func loopStarred(starredRepos []*github.StarredRepository) {
 	for i := range starredRepos {
 		repo := starredRepos[i].Repository
 		fullName := *repo.FullName
@@ -46,7 +99,6 @@ func main() {
 			time.Sleep(time.Second * 1)
 		}
 	}
-	fmt.Printf("Github api limit: %v. Github api remaining: %v. Github api reset %v\n", resp.Limit, resp.Remaining, resp.Reset)
 }
 
 // buildGitCmd creates the git clone or git pull command. If url is empty
@@ -101,7 +153,9 @@ func findGit() string {
 func exists(path string) bool {
 	_, err := os.Stat(path)
 	if err != nil {
-		return os.IsNotExist(err)
+		if os.IsNotExist(err) {
+			return false
+		}
 	}
 	return true
 }
