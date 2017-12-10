@@ -48,7 +48,7 @@ func main() {
 		if err != nil {
 			toolbox.Oopse(err)
 		}
-		fmt.Fprintf(os.Stderr, "On page %d of %d\n", s.Page, s.LastPage)
+		fmt.Fprintf(os.Stderr, s.status())
 		loopStarred(r)
 		fmt.Printf("\nGithub api limit: %v. Github api remaining: %v. Github api reset %v\n",
 			s.Limit, s.Remaining, s.Reset)
@@ -65,7 +65,7 @@ func (s *Star) getRepos(page, perpage int) ([]*github.StarredRepository, error) 
 			Page:    page,
 		},
 	})
-	if resp.NextPage == resp.LastPage {
+	if resp.NextPage == 0 {
 		s.NextPage = false
 	} else {
 		s.NextPage = true
@@ -76,6 +76,13 @@ func (s *Star) getRepos(page, perpage int) ([]*github.StarredRepository, error) 
 	s.Remaining = resp.Remaining
 	s.LastPage = resp.LastPage
 	return starredRepos, err
+}
+
+func (s *Star) status() string {
+	if s.Page == 0 {
+		return "On last page"
+	}
+	return fmt.Sprintf("On page %d of %d\n", s.Page-1, s.LastPage)
 }
 
 func loopStarred(starredRepos []*github.StarredRepository) {
