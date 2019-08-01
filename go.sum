@@ -1,0 +1,9 @@
+github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/google/go-github v0.0.0-20171124205131-872b3704ba8e h1:f7RMoMnlxexinN4ZSf1vSKeWEdIXTORj9QABfjiztfo=
+github.com/google/go-github v0.0.0-20171124205131-872b3704ba8e/go.mod h1:zLgOLi98H3fifZn+44m+umXrS52loVEgC2AApnigrVQ=
+github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 h1:zLTLjkaOFEFIOxY5BWLFLwh+cL8vOBW4XJ2aqLE/Tf0=
+github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO6wN/zVPAxq5ck=
+github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/stretchr/testify v1.1.4/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
+gitlab.com/clly/toolbox v0.0.0-20170910002505-bc346284eebd h1:1rtm5Woa6HMN3j7718L9PP6cIviTyi7K8vQNJiMiwkA=
+gitlab.com/clly/toolbox v0.0.0-20170910002505-bc346284eebd/go.mod h1:wDFtlq/fYhKsMH6t7sBViRUvpucRYHd8vygo/JddekQ=
