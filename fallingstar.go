@@ -7,8 +7,6 @@ import (
 	"os/exec"
 	"time"
 
-	"gitlab.com/clly/toolbox"
-
 	"github.com/google/go-github/github"
 )
 
@@ -46,7 +44,7 @@ func main() {
 	for s.NextPage {
 		r, err := s.getRepos(s.Page, perPage)
 		if err != nil {
-			toolbox.Oopse(err)
+			Oopse(err)
 		}
 		fmt.Fprintf(os.Stderr, s.status())
 		loopStarred(r)
@@ -65,6 +63,9 @@ func (s *Star) getRepos(page, perpage int) ([]*github.StarredRepository, error) 
 			Page:    page,
 		},
 	})
+	if err != nil {
+		return nil, err
+	}
 	if resp.NextPage == 0 {
 		s.NextPage = false
 	} else {
@@ -165,4 +166,9 @@ func exists(path string) bool {
 		}
 	}
 	return true
+}
+
+func Oopse(err error) {
+	fmt.Fprintln(os.Stderr, err.Error())
+	os.Exit(1)
 }
