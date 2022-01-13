@@ -143,16 +143,15 @@ func execGitCmd(path, url string) error {
 }
 
 func findGit() string {
-	if exists(binGit) {
-		return binGit
-	} else if exists(usrBinGit) {
-		return usrBinGit
-	} else if exists(usrLocalGit) {
-		return usrLocalGit
-	}
 	gitPath, err := exec.LookPath("git")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to find git on path. Looking at some other places")
+        for _, gitPath := range []string{binGit, usrBinGit, usrLocalGit} {
+            if exists(gitPath) {
+                return gitPath
+            }
+        }
+        fmt.Fprintln(os.Stderr, "Failed to find git entirely")
 		return ""
 	}
 	return gitPath
