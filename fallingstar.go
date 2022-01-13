@@ -46,7 +46,7 @@ func main() {
 		if err != nil {
 			Oopse(err)
 		}
-		fmt.Fprintf(os.Stderr, s.status())
+		fmt.Fprintln(os.Stderr, s.status())
 		loopStarred(r)
 		fmt.Printf("\nGithub api limit: %v. Github api remaining: %v. Github api reset %v\n",
 			s.Limit, s.Remaining, s.Reset)
@@ -114,10 +114,10 @@ func loopStarred(starredRepos []*github.StarredRepository) {
 func gitCmd(path string, url string) (*exec.Cmd, error) {
 	gitPath := findGit()
 	if gitPath == "" {
-		return nil, fmt.Errorf("Unable to find git on PATH or %s %s %s", binGit, usrBinGit, usrLocalGit)
+		return nil, fmt.Errorf("unable to find git on PATH or %s %s %s", binGit, usrBinGit, usrLocalGit)
 	}
 	var pwd string
-	gitCmd := make([]string, 0, 4)
+	var gitCmd []string
 	if url != "" {
 		gitCmd = []string{gitPath, "clone", url, path}
 	} else {
