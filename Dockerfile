@@ -9,5 +9,6 @@ FROM ubuntu
 WORKDIR /opt
 COPY --from=build /build/goregex ./
 
+WORKDIR /data
 USER nobody
 ENTRYPOINT ["/opt/goregex"]
