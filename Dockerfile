@@ -7,7 +7,8 @@ RUN make
 FROM ubuntu
 
 WORKDIR /opt
-COPY --from=build /build/goregex ./
+COPY --from=build /build/fallingstar ./
 
+WORKDIR /data
 USER nobody
-ENTRYPOINT ["/opt/goregex"]
+ENTRYPOINT ["/opt/fallingstar"]
